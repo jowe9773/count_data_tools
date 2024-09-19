@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
 import numpy as np
+import os
 
 
 class FileFunctions:
@@ -40,6 +41,19 @@ class FileFunctions:
         filename = filedialog.askopenfilename(title = purpose)
 
         return filename
+    
+    def find_files_with_name(root_folder, substring):
+        matching_files = []
+        
+        # Walk through the directory structure
+        for dirpath, dirnames, filenames in os.walk(root_folder):
+            # Check if the target substring is in any of the filenames
+            for filename in filenames:
+                if substring in filename:
+                    # Append the full path of the matching file
+                    matching_files.append(os.path.join(dirpath, filename))
+        
+        return matching_files
 
 class CountDataFunctions:
     def __init__(self):
