@@ -1,69 +1,105 @@
 #plotting_count_data.py
 
 #import neccesary packages and modules
-from functions import FileFunctions
+import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-import numpy as np
+from matplotlib import gridspec
+from functions import FileFunctions, CountDataFunctions
 
-#generate a matrix containing the information you want to put into a heatmap for a single experiment
-def make_count_matrix(count_data_all_exps, row_index):
-    #input values
-    s_in = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_dropped"]
-    i_in = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_dropped"] 
-    l_in = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_dropped"]
-    in_tot = s_in + i_in + l_in
+#initialize classes
+ff = FileFunctions()
+cdf = CountDataFunctions()
 
-    #floodplain values
-    s_fp = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_fp_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_fp_ind"]
-    i_fp = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_fp_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_fp_ind"]
-    l_fp = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_fp_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_fp_ind"]
-    fp_tot = s_fp + i_fp + l_fp
+#choose a count data file
+count_data_fn = ff.load_fn("Select count data file")
 
-    #channel marginal values
-    s_cm = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_cm_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_cm_ind"]
-    i_cm = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_cm_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_cm_ind"]
-    l_cm = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_cm_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_cm_ind"]
-    cm_tot = s_cm + i_cm + l_cm
+count_data = pd.read_csv(count_data_fn)
+print(count_data)
 
-    #in channel values
-    s_ic = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_ic_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_ic_ind"]
-    i_ic = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_ic_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_ic_ind"]
-    l_ic = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_ic_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_ic_ind"]
-    ic_tot = s_ic + i_ic + l_ic
+#Choose parameters you would like to remain the same across all experiments that you will plot (comment out the parameter you would like to change):
+#FSD = 0.5
+FLOOD = "H"
+TRANSPORT_REGIME = "U"
+condition1 = count_data["flood"] == FLOOD
+condition2 =  count_data["trans_reg"] == TRANSPORT_REGIME
 
-    #values by size
-    s_tot = s_fp + s_cm + s_ic
-    i_tot = i_fp + i_cm + i_ic
-    l_tot = l_fp + l_cm + l_ic
-    total = s_tot + i_tot + l_tot
+exps_by_fsd = [[], [], [], []]
 
-    exp_matrix = np.array([[s_in, i_in, l_in, in_tot],
-                        [s_fp, i_fp, l_fp, fp_tot],
-                        [s_cm, i_cm, l_cm, cm_tot],
-                        [s_ic, i_ic, l_ic, ic_tot],
-                        [s_tot, i_tot, l_tot, total]])
-    
-    return exp_matrix
+for i, fsd in enumerate([0.5, 1.0, 2.0, 4.0]):
+    condition3 = count_data["fsd"] == fsd
+    exps_by_fsd[i] = count_data.index[condition1 & condition2 & condition3].tolist()
 
+print(exps_by_fsd)
+
+#make a list of lists of matricies so that each experiment has a count data matrix
+count_matricies = []
+for i, list in enumerate(exps_by_fsd):
+    print(list)
+    exp_type_matricies = []
+    for j, row_index in enumerate(list):
+        print(row_index)
+        count_matrix = cdf.make_count_matrix(count_data, row_index)
+        exp_type_matricies.append(count_matrix)
+    count_matricies.append(exp_type_matricies)
+
+print(count_matricies)
 
 
-if __name__ == "__main__":
-    #initialize classes
-    ff = FileFunctions()
+#load experiments into appropriate lists
+experiments = {
+    "FSD 0.5x": count_matricies[0],
+    "FSD 1x": count_matricies[1],
+    "FSD 2x": count_matricies[2],
+    "FSD 4x": count_matricies[3]
+}
 
-    #choose a count data file
-    count_data_fn = ff.load_fn("Select count data file")
+# Custom word labels for the x and y axes
+x_labels = ["S", "I ", "L ", "T"]
+y_labels = ["FP", "CM", "IC", "TOT"]
 
-    #import count data file
-    count_data = pd.read_csv(count_data_fn)
-    row_index = 0
+# Determine the maximum number of trials across all experiment types
+max_trials = max(len(trials) for trials in experiments.values())
+n_cols = len(experiments)  # Number of experiment types
 
-    #plot a single experiment as a heatmap
-    exp_matrix = make_count_matrix(count_data, row_index)
+# Create a gridspec layout with extra space for the colorbar
+fig = plt.figure(figsize=(15, 10))
+gs = gridspec.GridSpec(max_trials, n_cols + 1, width_ratios=[1] * n_cols + [0.05])  # Extra column for colorbar
 
+# Find global min and max values across all experiments for consistent color scaling
+vmin = min([np.min(heatmap) for heatmaps in experiments.values() for heatmap in heatmaps])
+vmax = max([np.max(heatmap) for heatmaps in experiments.values() for heatmap in heatmaps])
 
-    plt.imshow(exp_matrix, cmap='hot', interpolation='nearest')
-    plt.title('Heatmap Example')
-    plt.colorbar()  # Adds a color bar
-    plt.show()
+# Plot each heatmap in its corresponding row (trial) and column (experiment type)
+# Plot each heatmap in its corresponding row (trial) and column (experiment type)
+axes = []
+for col, (exp_type, heatmaps) in enumerate(experiments.items()):
+    for row in range(max_trials):
+        if row < len(heatmaps):  # Check if there is a heatmap for this trial
+            ax = plt.subplot(gs[row, col])
+            im = ax.imshow(heatmaps[row], cmap='coolwarm', vmin=vmin, vmax=vmax)
+            
+            # Set custom x and y labels using words
+            ax.set_xticks(range(len(x_labels)))
+            ax.set_xticklabels(x_labels, rotation=45, ha="right")  # Rotate for better readability
+            ax.set_yticks(range(len(y_labels)))
+            ax.set_yticklabels(y_labels)
+
+        else:
+            # Create an empty subplot if no data exists for this row (trial)
+            ax = plt.subplot(gs[row, col])
+            ax.axis('off')  # Turn off the axis for empty plots
+
+        if row == 0:
+            ax.set_title(exp_type)  # Set title for each column
+        if col == 0 and row < len(heatmaps):
+            ax.set_ylabel(f'Trial {row + 1}')  # Label for each trial row
+        axes.append(ax)
+
+# Create the colorbar in the extra column (last column of the gridspec)
+cbar_ax = plt.subplot(gs[:, -1])  # Use the entire last column for the colorbar
+fig.colorbar(im, cax=cbar_ax)
+
+# Adjust layout to avoid overlapping
+plt.tight_layout()
+plt.show()

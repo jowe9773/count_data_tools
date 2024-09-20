@@ -155,3 +155,48 @@ class CountDataFunctions:
                                     "remobilized_s", "remobilized_i", "remobilized_l", "remobilized_total"])
 
         return output_data
+    
+    def make_count_matrix(self, count_data_all_exps, row_index):
+        #input values
+        s_in = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_dropped"]
+        i_in = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_dropped"] 
+        l_in = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_dropped"]
+        in_tot = s_in + i_in + l_in
+
+        #floodplain values
+        s_fp = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_fp_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_fp_ind"]
+        i_fp = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_fp_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_fp_ind"]
+        l_fp = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_fp_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_fp_ind"]
+        fp_tot = s_fp + i_fp + l_fp
+
+        #channel marginal values
+        s_cm = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_cm_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_cm_ind"]
+        i_cm = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_cm_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_cm_ind"]
+        l_cm = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_cm_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_cm_ind"]
+        cm_tot = s_cm + i_cm + l_cm
+
+        #in channel values
+        s_ic = count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_ic_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "s_ic_ind"]
+        i_ic = count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_ic_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "i_ic_ind"]
+        l_ic = count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_ic_injam"] + count_data_all_exps.loc[count_data_all_exps.index[row_index], "l_ic_ind"]
+        ic_tot = s_ic + i_ic + l_ic
+
+        #values by size
+        s_tot = s_fp + s_cm + s_ic
+        i_tot = i_fp + i_cm + i_ic
+        l_tot = l_fp + l_cm + l_ic
+        total = s_tot + i_tot + l_tot
+
+        exp_matrix = np.array([[s_fp, i_fp, l_fp, fp_tot],
+                            [s_cm, i_cm, l_cm, cm_tot],
+                            [s_ic, i_ic, l_ic, ic_tot],
+                            [s_tot, i_tot, l_tot, total]])
+        
+        return exp_matrix
+    
+class PlotCountData:
+    def __init__(self):
+        print('Initialized PlotCountData')
+
+    def plot_count_data_heatmap(self):
+        
