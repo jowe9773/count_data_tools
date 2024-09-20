@@ -6,6 +6,7 @@ from tkinter import filedialog
 import pandas as pd
 import numpy as np
 import os
+from pathlib import Path
 
 
 class FileFunctions:
@@ -42,7 +43,7 @@ class FileFunctions:
 
         return filename
     
-    def find_files_with_name(root_folder, substring):
+    def find_files_with_name(self, root_folder, substring):
         matching_files = []
         
         # Walk through the directory structure
@@ -51,7 +52,8 @@ class FileFunctions:
             for filename in filenames:
                 if substring in filename:
                     # Append the full path of the matching file
-                    matching_files.append(os.path.join(dirpath, filename))
+                    full_path = Path(os.path.join(dirpath, filename)).as_posix()
+                    matching_files.append(full_path)
         
         return matching_files
 
@@ -67,10 +69,26 @@ class CountDataFunctions:
         exp_name = fn_info[0] + "_" + fn_info[1]                #grab experiment name from filename
 
         exps_deets = pd.read_excel(exps_summary)
-        experiment = exps_deets[exps_deets["Experiment Name"] == exp_name]
-        flood = experiment.iloc[0]["Flood type"]
-        trans_reg = experiment.iloc[0]["Congestion"]
-        fsd = experiment.iloc[0]["Forest Stand Density"]        #grab experiment setup details from experiment summary table
+
+        #check to see if experiment name is in experiment deets
+        if exps_deets["Experiment Name"].isin([exp_name]).any():
+            experiment = exps_deets[exps_deets["Experiment Name"] == exp_name]
+            flood = experiment.iloc[0]["Flood type"]
+            trans_reg = experiment.iloc[0]["Congestion"]
+            fsd = experiment.iloc[0]["Forest Stand Density"]        #grab experiment setup details from experiment summary table
+            print(exp_name + ": ", fsd, flood, trans_reg)
+
+        else:
+            print (f"Experiment name {exp_name} not in experiments summary file")
+            return
+
+        if flood == "A":
+            print(f"Experiment {exp_name} is an autochthonous experiment and has no count data")
+            return
+        
+        if flood == "x":
+            print(f"Experiment {exp_name} is an 'x' experiment and has no count data")
+            return
         
         # read file for experiment containing the cart data
         exp = pd.read_excel(filename, sheet_name="Summary")
@@ -87,7 +105,7 @@ class CountDataFunctions:
             remobilized_l = np.nan
             remobilized_total = np.nan
 
-        if flood == "L":
+        elif flood == "L":
             remobilized_s = exp.iat[16,2]
             remobilized_i = exp.iat[16,3]
             remobilized_l = exp.iat[16,4]
