@@ -158,7 +158,84 @@ class CountDataFunctions:
 
         return output_data
     
+    def get_jam_counts(self, jam_num, exp):
 
+        sr = 1 + (jam_num-1)*8
+
+        jam_counts = [jam_num,
+                
+                    exp.iat[sr,1], exp.iat[sr,2], exp.iat[sr,3], exp.iat[sr,4],
+                    exp.iat[sr+1,1], exp.iat[sr+1,2], exp.iat[sr+1,3], exp.iat[sr+1,4],
+                    exp.iat[sr+2,1], exp.iat[sr+2,2], exp.iat[sr+2,3], exp.iat[sr+2,4],
+                    exp.iat[sr+3,1], exp.iat[sr+3,2], exp.iat[sr+3,3], exp.iat[sr+3,4]]
+
+
+        return jam_counts
+    
+    def get_jams_for_exp(self, filename, exps_summary):
+            #establish experiment name, flood type, transport regime, and forest stand density for the experiment
+        fn_info = filename.split("/")[-1].split("_")
+        exp_name = fn_info[0] + "_" + fn_info[1]                #grab experiment name from filename
+
+        exps_deets = pd.read_excel(exps_summary)
+
+        #check to see if experiment name is in experiment deets
+        if exps_deets["Experiment Name"].isin([exp_name]).any():
+            experiment = exps_deets[exps_deets["Experiment Name"] == exp_name]
+            flood = experiment.iloc[0]["Flood type"]
+            trans_reg = experiment.iloc[0]["Congestion"]
+            fsd = experiment.iloc[0]["Forest Stand Density"]        #grab experiment setup details from experiment summary table
+            print(exp_name + ": ", fsd, flood, trans_reg)
+
+        else:
+            print (f"Experiment name {exp_name} not in experiments summary file")
+            return
+
+        if flood == "A":
+            print(f"Experiment {exp_name} is an autochthonous experiment and has no count data")
+            return
+        
+        if flood == "x":
+            print(f"Experiment {exp_name} is an 'x' experiment and has no count data")
+            return
+
+        counts_df = pd.DataFrame(columns = ["jam",
+
+                                            "s_fp", "i_fp", "l_fp", "all_fp",
+                                            "s_cm", "i_cm", "l_cm", "all_cm",
+                                            "s_ic", "i_ic", "l_ic", "all_ic",
+                                            "s_tot", "i_tot", "l_tot", "all"])
+        
+        #load jams datasheet from experiment
+
+        exp = pd.read_excel(filename, sheet_name = "Jams")
+        
+        #iterate through the jams to get jam counts across all of the jams for the experiment
+        for i, jam in enumerate(range(int(exp.shape[0]/8)+2)):
+            sr = 1 + (jam-1)*8
+
+            #get jam counts for each experiment that has a non-zero total piece number
+            if exp.iat[sr+3,4] != 0:
+                jam_counts = self.get_jam_counts(jam, exp)
+                counts_df.loc[len(counts_df)] = jam_counts
+            
+        #add information about the experiment to each jam from this exp
+        counts_df["exp_name"] = exp_name
+        counts_df["flood"] = flood
+        counts_df["trans_reg"] = trans_reg
+        counts_df["fsd"] = fsd
+
+        #reorder the columns so that the experiment description is first
+        counts_df = counts_df[["exp_name", "flood", "trans_reg", "fsd",
+            
+                                "jam",
+
+                                "s_fp", "i_fp", "l_fp", "all_fp",
+                                "s_cm", "i_cm", "l_cm", "all_cm",
+                                "s_ic", "i_ic", "l_ic", "all_ic",
+                                "s_tot", "i_tot", "l_tot", "all"]]
+        
+        return counts_df
 
 
 
