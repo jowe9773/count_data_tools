@@ -1,4 +1,4 @@
-#batch_get_count_data.py
+#batch_get_exp_lvl_count_data.py
 
 #import neccesary packages and modules
 import pandas as pd
@@ -46,3 +46,4 @@ for i, filename in enumerate(count_data_files):
 
 print(output_df)
 output_df.to_csv(out_dir + "/count_data.csv")
+

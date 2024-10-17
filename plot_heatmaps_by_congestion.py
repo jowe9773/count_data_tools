@@ -16,15 +16,15 @@ count_data = pd.read_csv(count_data_fn)
 print(count_data)
 
 #Choose parameters you would like to remain the same across all experiments that you will plot (comment out the parameter you would like to change):
-TRANSPORT_REGIME = "U"
+FLOOD = "H"
 FSD = 1.0
 condition1 = count_data["fsd"] == FSD
-condition2 =  count_data["trans_reg"] == TRANSPORT_REGIME
+condition2 = count_data["flood"] == FLOOD
 
 exps_by_fsd = [[], []]
 
-for i, flood in enumerate(["L", "H"]):
-    condition3 = count_data["flood"] == flood
+for i, trans_reg in enumerate(["U", "S"]):
+    condition3 =  count_data["trans_reg"] == trans_reg
     exps_by_fsd[i] = count_data.index[condition1 & condition2 & condition3].tolist()
 
 print(exps_by_fsd)
@@ -45,8 +45,8 @@ print(count_matricies)
 
 #load experiments into appropriate lists
 experiments = {
-    "Low Flood": count_matricies[0],
-    "High Flood": count_matricies[1]
+    "Uncongested": count_matricies[0],
+    "Semi-Congested": count_matricies[1]
 }
 
 pcd.plot_heatmaps(experiments)
