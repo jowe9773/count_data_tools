@@ -12,6 +12,16 @@ ff = FileFunctions()
 cdf = CountDataFunctions()
 pcd = PlotCountData()
 
+# Update font sizes globally
+plt.rcParams.update({
+    'font.size': 18,  # General font size
+    'axes.titlesize': 20,  # Title font size
+    'axes.labelsize': 18,  # Axis label font size
+    'xtick.labelsize': 16,  # X-tick label font size
+    'ytick.labelsize': 16,  # Y-tick label font size
+    'legend.fontsize': 16,  # Legend font size
+})
+
 #choose a count data file
 jam_count_data_fn = ff.load_fn("Select count data file")
 
@@ -20,7 +30,7 @@ print(count_data)
 
 #Choose parameters you would like to remain the same across all experiments that you will plot (comment out the parameter you would like to change):
 FLOOD = "H"
-TRANSPORT_REGIME = "S"
+TRANSPORT_REGIME = "U"
 
 condition1 = count_data["flood"] == FLOOD
 condition2 = count_data["trans_reg"] == TRANSPORT_REGIME
@@ -127,7 +137,7 @@ ax.set_xticklabels([f"{fsd}: {exp}" for fsd, exps in indices_by_exp_type.items()
 
 # Labels and title
 ax.set_ylabel('Proportion of Total Pieces Dropped')
-ax.set_title('Proportion of Total Pieces Dropped by Jam, FSD, and Experiment')
+ax.set_title('Proportion of Total Pieces Dropped by FSD and Experiment')
 
 # Add legend
 ax.legend(loc='upper right', ncols=3)
