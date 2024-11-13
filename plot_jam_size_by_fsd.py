@@ -12,12 +12,12 @@ pcd = PlotCountData()
 
 # Update font sizes globally
 plt.rcParams.update({
-    'font.size': 18,  # General font size
-    'axes.titlesize': 20,  # Title font size
-    'axes.labelsize': 18,  # Axis label font size
-    'xtick.labelsize': 16,  # X-tick label font size
-    'ytick.labelsize': 16,  # Y-tick label font size
-    'legend.fontsize': 16,  # Legend font size
+    'font.size': 24,  # General font size
+    'axes.titlesize': 26,  # Title font size
+    'axes.labelsize': 24,  # Axis label font size
+    'xtick.labelsize': 22,  # X-tick label font size
+    'ytick.labelsize': 22,  # Y-tick label font size
+    'legend.fontsize': 22,  # Legend font size
 })
 
 dot_size = 5
@@ -74,7 +74,7 @@ fsd_colors = {
     '0.5': 'tab:blue',
     '1.0': 'tab:orange',
     '2.0': 'tab:green',
-    '4.0': 'tab:red',
+    '4.0': 'tab:purple',
 }
 
 # Initialize an offset value to separate points from different experiments

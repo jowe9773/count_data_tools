@@ -7,6 +7,17 @@ from pprint import pprint
 import pandas as pd
 from functions import FileFunctions, CountDataFunctions, PlotCountData
 
+
+# Update font sizes globally
+plt.rcParams.update({
+    'font.size': 24,  # General font size
+    'axes.titlesize': 26,  # Title font size
+    'axes.labelsize': 24,  # Axis label font size
+    'xtick.labelsize': 22,  # X-tick label font size
+    'ytick.labelsize': 22,  # Y-tick label font size
+    'legend.fontsize': 22,  # Legend font size
+})
+
 #initialize classes
 ff = FileFunctions()
 cdf = CountDataFunctions()
@@ -129,7 +140,7 @@ ax.set_ylabel('Proportion of Total Pieces Dropped')
 ax.set_title('Proportion of Total Pieces Dropped by Jam, FSD, and Experiment')
 
 # Add legend
-ax.legend(loc='upper right', ncols=3)
+ax.legend(loc='upper left', ncols=3)
 
 # Add grid for better visualization
 ax.grid(True, axis='y', linestyle='--', alpha=0.7)

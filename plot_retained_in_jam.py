@@ -1,3 +1,5 @@
+#plot_retained_in_jam.py
+
 #plot_bar_charts_simple.py
 
 #import neccesary packages and modules
@@ -12,6 +14,7 @@ ff = FileFunctions()
 cdf = CountDataFunctions()
 pcd = PlotCountData()
 
+# Update font sizes globally
 plt.rcParams.update({
     'font.size': 18,  # General font size
     'axes.titlesize': 20,  # Title font size
@@ -70,9 +73,8 @@ pprint(indices_by_exp_type)
 
 #now make a df with proportion data (only proportion columns for what you actually want to stack)
 proportion_df = pd.DataFrame({
-                              "floodplain": count_data["all_fp"]/880,
-                              "channel_marginal": count_data["all_cm"]/880,
-                              "in_channel": count_data["all_ic"]/880
+                              "in_jam": count_data["all_injam"]/count_data["all_pieces"],
+                              "not_in_jam": count_data["all_ind"]/count_data["all_pieces"]
                                 })
 
 print(proportion_df)
@@ -85,22 +87,13 @@ width = 0.8  # Width of each bar
 experiment_gap = 1.5  # Gap between experiments
 fsd_gap = 3  # Gap between FSD groups
 
-
-# Keep track of x positions for bars
-x = []
-experiment_positions = []
-counter = 0
-
-# Color maps for different FSDs (for the bars)
+# Color maps for different FSDs
 fsd_colors = {
     '0.5': plt.cm.Blues,
     '1.0': plt.cm.Oranges,
     '2.0': plt.cm.Greens,
     '4.0': plt.cm.Purples,
 }
-
-# Grayscale map for the legend
-legend_colors = plt.cm.Greys(np.linspace(0.2, 0.8, len(proportion_df.columns)))
 
 # Keep track of x positions for bars
 x = []
@@ -109,6 +102,7 @@ counter = 0
 
 # Loop through each FSD group
 for fsd, experiments in indices_by_exp_type.items():
+    # For each FSD, loop through the experiments
     for experiment, indices in experiments.items():
         # Extract data for the given indices (jams)
         trials = proportion_df.iloc[indices]
@@ -124,10 +118,10 @@ for fsd, experiments in indices_by_exp_type.items():
         # Initialize bottom to stack bars
         bottom = np.zeros(num_trials)
         
-        # Get the color map for the current fsd (for the bars)
-        colors = fsd_colors[fsd](np.linspace(0.2, 0.8, len(proportion_df.columns)))
+        # Get the color map for the current fsd
+        colors = fsd_colors[fsd](np.linspace(0.5, 0.2, len(proportion_df.columns)))
         
-        # Stack each value column
+        # Stack each value column (e.g., small, medium, large pieces)
         for i, col in enumerate(proportion_df.columns):
             ax.bar(x_positions, trials[col], width, label=col if counter == 0 else "", bottom=bottom, color=colors[i])
             bottom += trials[col].values
@@ -143,23 +137,15 @@ ax.set_xticks(experiment_positions)
 ax.set_xticklabels([f"{fsd}: {exp}" for fsd, exps in indices_by_exp_type.items() for exp in exps.keys()], rotation=45, ha='right')
 
 # Labels and title
-ax.set_ylabel('Proportion of Total Pieces Dropped')
-ax.set_title('Proportion of Total Pieces Dropped by FSD and Experiment')
+ax.set_ylabel('Proportion of Total Pieces Retained')
+ax.set_title('Proportion of Total Pieces Retained in Jams by FSD and Experiment')
 
-# Custom legend (grayscale)
-legend_handles = [
-    plt.Line2D([0], [0], color=legend_colors[i], lw=4, label=col)
-    for i, col in enumerate(proportion_df.columns)
-]
-
-ax.legend(handles=legend_handles, loc='upper left', ncols=3)
+# Add legend
+#ax.legend(loc='upper right', ncols=2)
 
 # Add grid for better visualization
 ax.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-ax.invert_xaxis()
-
 # Show plot
 plt.tight_layout()
 plt.show()
-

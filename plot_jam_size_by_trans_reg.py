@@ -1,6 +1,7 @@
 #import necessary packages and modules
 import matplotlib.pyplot as plt
 from pprint import pprint 
+import matplotlib.lines as mlines
 import pandas as pd
 from functions import FileFunctions, CountDataFunctions, PlotCountData
 
@@ -8,6 +9,18 @@ from functions import FileFunctions, CountDataFunctions, PlotCountData
 ff = FileFunctions()
 cdf = CountDataFunctions()
 pcd = PlotCountData()
+
+# Update font sizes globally
+plt.rcParams.update({
+    'font.size': 24,  # General font size
+    'axes.titlesize': 26,  # Title font size
+    'axes.labelsize': 24,  # Axis label font size
+    'xtick.labelsize': 22,  # X-tick label font size
+    'ytick.labelsize': 22,  # Y-tick label font size
+    'legend.fontsize': 22,  # Legend font size
+})
+
+dot_size = 500
 
 #choose a count data file
 jam_count_data_fn = ff.load_fn("Select count data file")
@@ -23,24 +36,24 @@ condition1 = count_data["flood"] == FLOOD
 condition2 = count_data["fsd"] == FSD
 
 # Define fsd values
-trans_regs = ["U", "S"]
+fsds = ["U", "S"]
 
 # Dictionary to store trials and indices by experiment type
 trials_by_exp_type = {}
 indices_by_exp_type = {}
 
-for i, trans_reg in enumerate(trans_regs):
-    condition3 = count_data["trans_reg"] == trans_reg
+for i, fsd in enumerate(fsds):
+    condition3 = count_data["trans_reg"] == fsd
     
     # Find trials that meet the conditions
     trials = count_data["exp_name"][condition1 & condition2 & condition3].unique().tolist()
     print(trials)
     
     # Store trials by experiment type
-    trials_by_exp_type[f"{trans_reg}"] = trials
+    trials_by_exp_type[f"{fsd}"] = trials
     
     # Initialize the nested dictionary for the current `fsd`
-    indices_by_exp_type[f"{trans_reg}"] = {}
+    indices_by_exp_type[f"{fsd}"] = {}
     
     # Loop over each trial and find corresponding row indices
     for trial in trials:
@@ -48,7 +61,7 @@ for i, trans_reg in enumerate(trans_regs):
         indices = count_data.index[condition1 & condition2 & condition3 & trial_condition].tolist()
         
         # Store the indices for the specific trial under the current `fsd`
-        indices_by_exp_type[f"{trans_reg}"][trial] = indices
+        indices_by_exp_type[f"{fsd}"][trial] = indices
 
 # Pretty print the trials and nested indices
 pprint(indices_by_exp_type)
@@ -76,16 +89,23 @@ for fsd, experiments in indices_by_exp_type.items():
     # Loop through the experiments within the current FSD
     for i, (experiment, indices) in enumerate(experiments.items()):
         # Extract the jam sizes for the given indices
-        jam_sizes = count_data['all'].iloc[indices]  # Replace 'all' with the correct column name for jam sizes
+        jam_sizes = count_data['all'].iloc[indices]  # Replace 'jam_size' with the correct column name for jam sizes
+
+        # Calculate point sizes based on a linear scaling
+        raw_point_sizes = count_data['all_fp'].iloc[indices] / count_data['all'].iloc[indices]
+        
+        # Linear scaling for point sizes (adjust scaling factor)
+        point_sizes = raw_point_sizes * dot_size  # Adjusted scale factor for better visibility
 
         # Calculate x positions with an offset for this experiment
         x_pos = [fsd_positions[fsd] + (i - len(experiments) / 2) * experiment_offset] * len(jam_sizes)
         x_positions.extend(x_pos)
 
-        # Plot the jam sizes as scatter points
+        # Plot the jam sizes as scatter points with varying sizes
         ax.scatter(
             x_pos,                   # X positions with offset
             jam_sizes,               # Y positions are the jam sizes
+            s=point_sizes,           # Set point sizes based on the computed values
             label=experiment,        # Use the experiment name for labeling
             color=fsd_colors[fsd],   # Color based on FSD
             alpha=0.7,               # Set transparency for better visibility
@@ -93,20 +113,30 @@ for fsd, experiments in indices_by_exp_type.items():
         )
 
 # Set axis labels and title
-ax.set_xlabel('FSD')
+ax.set_xlabel('Transport Regime')
 ax.set_ylabel('Jam Size')
 ax.set_title('Jam Size by Experiment and Transport Regime')
 
-# Create a legend with unique experiment names
-handles, labels = ax.get_legend_handles_labels()
-by_label = dict(zip(labels, handles))
+# Create a custom legend for specific proportions (0.1, 0.5, 0.9)
+proportions = [0.1, 0.5, 0.9]
+legend_sizes = [p * dot_size for p in proportions]  # Linear scaling for legend sizes
+
+# Define labels showing the proportions (e.g., '0.1', '0.5', '0.9')
+legend_labels = [f'{p:.1f}' for p in proportions]
+
+# Create custom legend handles for the proportions
+legend_handles = [mlines.Line2D([], [], color='black', marker='o', linestyle='None', markersize=size ** 0.5, label=label)
+                  for size, label in zip(legend_sizes, legend_labels)]
+
+# Add the custom legend for point sizes to the plot
+ax.legend(handles=legend_handles, title='Proportion of jam pieces on floodplain', loc='upper right')
 
 # Show grid for better readability
 ax.grid(True)
 
 # Set x-ticks with categorical labels
 ax.set_xticks(list(fsd_positions.values()))  # Set ticks as numeric positions
-ax.set_xticklabels(list(fsd_colors.keys()))  # Use the FSD categorical values for labels
+ax.set_xticklabels(list(fsd_colors.keys()))   # Use the same categorical values for labels
 
 # Show the plot
 plt.tight_layout()
