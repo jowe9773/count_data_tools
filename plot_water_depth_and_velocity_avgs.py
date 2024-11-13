@@ -70,6 +70,9 @@ legend_elements = [
 # Display the custom legend
 ax1.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0.8, 0.5))
 
+ax1.invert_xaxis()
+  
+
 # Show the plot
 plt.tight_layout()  # Adjusts layout to fit everything nicely
 plt.show()

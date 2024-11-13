@@ -16,7 +16,7 @@ count_data = pd.read_csv(jam_count_data_fn)
 
 #Choose parameters you would like to remain the same across all experiments
 FLOOD = "H"
-TRANSPORT_REGIME = "S"
+TRANSPORT_REGIME = "U"
 
 condition1 = count_data["flood"] == FLOOD
 condition2 = count_data["trans_reg"] == TRANSPORT_REGIME
@@ -57,7 +57,7 @@ for fsd, trials in indices_by_exp_type.items():
         jam_count = len(indices)
         
         # Append data for plotting
-        fsd_values.append(float(fsd))  # Convert fsd to float for plotting
+        fsd_values.append(str(fsd))  # Convert fsd to float for plotting
         jam_counts.append(jam_count)
 
 # Create a scatter plot for number of jams
@@ -73,6 +73,8 @@ ax.set_title('Number of Jams per FSD Value')
 
 # Optionally, add a grid
 ax.grid()
+
+ax.invert_xaxis()
 
 # Show the plot
 plt.tight_layout()

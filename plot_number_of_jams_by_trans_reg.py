@@ -86,6 +86,8 @@ ax.set_xticklabels(trans_regs)  # Use the categorical labels
 # Optionally, add a grid
 ax.grid()
 
+ax.invert_xaxis()
+
 # Show the plot
 plt.tight_layout()
 plt.show()

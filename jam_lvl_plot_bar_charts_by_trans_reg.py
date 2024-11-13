@@ -20,7 +20,7 @@ print(count_data)
 
 #Choose parameters you would like to remain the same across all experiments that you will plot (comment out the parameter you would like to change):
 FLOOD = "H"
-FSD = 4.0
+FSD = 1.0
 
 condition1 = count_data["flood"] == FLOOD
 condition2 = count_data["fsd"] == FSD
@@ -133,6 +133,8 @@ ax.legend(loc='upper right', ncols=3)
 
 # Add grid for better visualization
 ax.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+ax.invert_xaxis()
 
 # Show plot
 plt.tight_layout()
